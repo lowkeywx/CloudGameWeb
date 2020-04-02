@@ -3,6 +3,7 @@ import { Button } from '@alifd/next';
 import styles from './index.module.scss';
 import websocketclient from './client';
 
+
 const pomelo = window.pomelo;
 pomelo.on('jobMsg',OnMessage);
 pomelo.on('showInClient',OnMessage);
@@ -55,8 +56,9 @@ function entry(host, port, callback) {
     // eslint-disable-next-line no-param-reassign
     host = '10.0.19.15';
   }
+  const timeStamp = new Date().getTime();
   pomelo.init({'host': host, 'port': port, log: true}, function() {
-    pomelo.request('connector.entryHandler.entry', {userName: 'lowkey',password: '123456'}, function(data) {
+    pomelo.request('connector.entryHandler.entry', {userName: timeStamp.toString(),password: '123456'}, function(data) {
       if(!data){
         alert('获取实验列表为空!');
       }
