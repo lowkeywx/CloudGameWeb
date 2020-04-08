@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button } from '@alifd/next';
+import { Button, Message } from '@alifd/next';
 import styles from './index.module.scss';
 import websocketclient from './client';
 
@@ -7,6 +7,7 @@ import websocketclient from './client';
 const pomelo = window.pomelo;
 pomelo.on('jobMsg',OnMessage);
 pomelo.on('showInClient',OnMessage);
+
 const returnMsg = {
   authFail: '验证失败',
   jobFail: '任务处理失败',
@@ -21,29 +22,69 @@ const codeMsg = ['authFail', 'jobFail', 'jobDispatched','jobInit','invalidArgs_j
 function OnMessage(data){
   switch(data.code){
     case 0:
-      alert(returnMsg[codeMsg[0]]);
+      data.data = data.data || '';
+      // alert(returnMsg[codeMsg[0]]);
+      Message.notice({
+        title: `${returnMsg[codeMsg[0]]},${data.data}`,
+        duration: 2000
+      });
       break;
     case 1:
-      alert(returnMsg[codeMsg[1]]);
+      // alert(returnMsg[codeMsg[1]]);
+      data.data = data.data || '';
+      Message.notice({
+        title: `${returnMsg[codeMsg[1]]},${data.data}`,
+        duration: 2000
+      });
       break;
     case 2:
-      alert(returnMsg[codeMsg[2]]);
+      // alert(returnMsg[codeMsg[2]]);
+      data.data = data.data || '';
+      Message.notice({
+        title: `${returnMsg[codeMsg[2]]},${data.data}`,
+        duration: 2000
+      });
       pomelo.rtcClient = websocketclient(data.msg);
       break;
     case 3:
-      alert(returnMsg[codeMsg[3]]);
+      // alert(returnMsg[codeMsg[3]]);
+      data.data = data.data || '';
+      Message.notice({
+        title: `${returnMsg[codeMsg[3]]},${data.data}`,
+        duration: 2000
+      });
       break;
     case 4:
-      alert(returnMsg[codeMsg[4]]);
+      // alert(returnMsg[codeMsg[4]]);
+      data.data = data.data || '';
+      Message.notice({
+        title: `${returnMsg[codeMsg[4]]},${data.data}`,
+        duration: 2000
+      });
       break;
     case 5:
-      alert(returnMsg[codeMsg[5]]);
+      // alert(returnMsg[codeMsg[5]]);
+      data.data = data.data || '';
+      Message.notice({
+        title: `${returnMsg[codeMsg[5]]},${data.data}`,
+        duration: 2000
+      });
       break;
     case 6:
-      alert(returnMsg[codeMsg[6]]);
+      // alert(returnMsg[codeMsg[6]]);
+      data.data = data.data || '';
+      Message.notice({
+        title: `${returnMsg[codeMsg[6]]},${data.data}`,
+        duration: 2000
+      });
       break;
     case 7:
-      alert(returnMsg[codeMsg[7]]);
+      // alert(returnMsg[codeMsg[7]]);
+      data.data = data.data || '';
+      Message.notice({
+        title: `${returnMsg[codeMsg[7]]},${data.data}`,
+        duration: 2000
+      });
       break;
     default:
       break;
@@ -54,7 +95,7 @@ function entry(host, port, callback) {
   // TODO for development
   if(host === '127.0.0.1') {
     // eslint-disable-next-line no-param-reassign
-    host = '10.0.19.15';
+    host = '10.0.100.11';
   }
   const timeStamp = new Date().getTime();
   pomelo.init({'host': host, 'port': port, log: true}, function() {
@@ -68,6 +109,9 @@ function entry(host, port, callback) {
       console.log('获取实验列表成功，将启动实验。');
       console.log(`data keys is : ${Object.keys(data)}`);
       console.log(`data values is  : ${Object.values(data)}`);
+      pomelo.on('close',function(){
+        location.reload();
+      });
       pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: data[0]},function(data1) {
         console.log(`jobDispatch.jobDispatchHandler.doJob is callback. return value is ${  data1}`);
       });
@@ -77,7 +121,7 @@ function entry(host, port, callback) {
 }
 
 function queryEntry(uid, callback) {
-  pomelo.init({host: '10.0.19.15', port: '3040', log: true}, function() {
+  pomelo.init({host: '10.0.100.11', port: '3040', log: true}, function() {
     pomelo.request('gate.gateHandler.queryEntry', { 'uid': uid}, function(data) {
       pomelo.disconnect();
 

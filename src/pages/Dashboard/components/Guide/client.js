@@ -199,26 +199,36 @@ WebsocketClient.prototype.receiveChannelCallback = function(event) {
   this.receiveChannel.addEventListener('close', this.onReceiveChannelClosed.bind(this));
   this.receiveChannel.addEventListener('message', this.onReceiveMessageCallback.bind(this));
 
-  let rect = remoteVideo.getBoundingClientRect();
-  let fpsTime = (new Date()).getTime();
+  const rect = remoteVideo.getBoundingClientRect();
+  const fpsTime = (new Date()).getTime();
+  // const hoffset = window.screen.height - window.screen.availHeight;
+  const hoffset = 50;
   videoContainer.addEventListener('mousemove',function (ev) {
     if (((new Date()).getTime() - fpsTime) < 30)
       return;
-    let mouseX = ev.clientX-rect.x;
-    let mouseY = ev.clientY-rect.y;
-    this.receiveChannel.send(new Uint32Array([ioEvent.mousemove,mouseX,mouseY]));
+    let mouseX = ev.clientX-remoteVideo.offsetLeft;
+    let mouseY = ev.clientY-remoteVideo.offsetTop - hoffset;
+    mouseX = mouseX/1280*1920;
+    mouseY = mouseY/720*1080;
+    this.receiveChannel.send(new Uint32Array([ioEvent.mousemove,0,mouseX,mouseY]));
   }.bind(this),false);
   videoContainer.addEventListener('mousedown',function (ev) {
-    let mouseX = ev.clientX-rect.x;
-    let mouseY = ev.clientY-rect.y;
+    let mouseX = ev.clientX-remoteVideo.offsetLeft;
+    let mouseY = ev.clientY-remoteVideo.offsetTop - hoffset;
+    mouseX = mouseX/1280*1920;
+    mouseY = mouseY/720*1080;
+    console.log(`x坐标=${ev.clientX},y坐标=${ev.clientY}. x边距=${rect.x}, y边距=${rect.y}. videoContainer左边距=${videoContainer.offsetLeft},videoContainer顶边距=${videoContainer.offsetTop}`);
     this.receiveChannel.send(new Uint32Array([ioEvent.mousedown,ev.button,mouseX,mouseY]));
-    console.log('mousedown, x = ' + mouseX + 'y = ' + mouseY);
+    console.log(`mousedown, x = ${  mouseX  }y = ${  mouseY}`);
+    console.log(`window左边距=${window.offsetLeft},window顶边距=${window.offsetTop}.remoteVideo左边距=${remoteVideo.offsetLeft},remoteVideo顶边距=${remoteVideo.offsetTop}`);
   }.bind(this),false);
   videoContainer.addEventListener('mouseup',function (ev) {
-    let mouseX = ev.clientX-rect.x;
-    let mouseY = ev.clientY-rect.y;
+    let mouseX = ev.clientX-remoteVideo.offsetLeft;
+    let mouseY = ev.clientY-remoteVideo.offsetTop - hoffset;
+    mouseX = mouseX/1280*1920;
+    mouseY = mouseY/720*1080;
     this.receiveChannel.send(new Uint32Array([ioEvent.mouseup,ev.button,mouseX,mouseY]));
-    console.log('mouseup, x = ' + mouseX + 'y = ' + mouseY);
+    console.log(`mouseup, x = ${  mouseX  }y = ${  mouseY}`);
   }.bind(this),false);
   window.addEventListener('keydown',function (ev) {
     this.receiveChannel.send(new Uint32Array([ioEvent.keydown,ev.keyCode]));
