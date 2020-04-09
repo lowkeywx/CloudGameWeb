@@ -99,7 +99,7 @@ function entry(host, port, callback) {
   }
   const timeStamp = new Date().getTime();
   pomelo.init({'host': host, 'port': port, log: true}, function() {
-    pomelo.request('connector.entryHandler.entry', {userName: timeStamp.toString(),password: '123456'}, function(data) {
+    pomelo.request('connector.entryHandler.entry', {userName: timeStamp.toString(),password: '123456',schoolId: 0}, function(data) {
       if(!data){
         alert('获取实验列表为空!');
       }
@@ -112,7 +112,10 @@ function entry(host, port, callback) {
       pomelo.on('close',function(){
         location.reload();
       });
-      pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: data[0]},function(data1) {
+      const rd = Math.floor(Math.random()*10)%2;
+      const info = data[rd];
+      console.log(`获取的随机数=${rd}, 返回的列表长度=${data.lenght}, experimentId=${info.experimentId}, 绝对路径=${info.AbsolutePath}`);
+      pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: info},function(data1) {
         console.log(`jobDispatch.jobDispatchHandler.doJob is callback. return value is ${  data1}`);
       });
 
