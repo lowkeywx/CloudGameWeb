@@ -191,7 +191,6 @@ WebsocketClient.prototype.gotRemoteStream = function(e) {
 
 WebsocketClient.prototype.receiveChannelCallback = function(event) {
   const videoContainer = document.getElementById('videoContainer');
-
   const remoteVideo = document.getElementById('remoteVideo');
   console.log('Receive Channel Callback');
   this.receiveChannel = event.channel;
@@ -199,42 +198,44 @@ WebsocketClient.prototype.receiveChannelCallback = function(event) {
   this.receiveChannel.addEventListener('close', this.onReceiveChannelClosed.bind(this));
   this.receiveChannel.addEventListener('message', this.onReceiveMessageCallback.bind(this));
 
-  const rect = remoteVideo.getBoundingClientRect();
-  const fpsTime = (new Date()).getTime();
-  // const hoffset = window.screen.height - window.screen.availHeight;
-  const hoffset = 50;
+  let fpsTime = (new Date()).getTime();
+  const calculateMousePos = function(mouseEvent){
+    // const hoffset = window.screen.height - window.screen.availHeight;
+    // const hoffset = window.outerHeight - window.innerHeight;
+    const rect = remoteVideo.getBoundingClientRect();
+    let mouseX = mouseEvent.clientX-rect.left;
+    let mouseY = mouseEvent.clientY-rect.top;
+    mouseX /=remoteVideo.clientWidth;
+    mouseY /=remoteVideo.clientHeight;
+    console.info(`remoteVideo.offsetTop=${remoteVideo.offsetTop}, remoteVideo.clientTop=${remoteVideo.clientTop}, remoteVideo.scrollTop=${remoteVideo.scrollTop}`);
+    console.info(`remoteVideo.rect.left=${rect.left}, remoteVideo.rect.top=${rect.top}, remoteVideo.rect.right=${rect.right}, remoteVideo.rect.bottom =${rect.bottom }`);
+    console.info(`remoteVideo.offsetLeft=${remoteVideo.offsetLeft}, remoteVideo.offsetWidth=${remoteVideo.offsetWidth}`);
+    // console.info(`remoteVideo.clientHeight=${remoteVideo.clientHeight}, remoteVideo.offsetHeight=${remoteVideo.offsetHeight}, remoteVideo.scrollHeight=${remoteVideo.scrollHeight}`);
+    return{x: mouseX,y: mouseY}
+  }
   videoContainer.addEventListener('mousemove',function (ev) {
     if (((new Date()).getTime() - fpsTime) < 30)
       return;
-    let mouseX = ev.clientX-remoteVideo.offsetLeft;
-    let mouseY = ev.clientY-remoteVideo.offsetTop - hoffset;
-    mouseX = mouseX/1280*1920;
-    mouseY = mouseY/720*1080;
-    this.receiveChannel.send(new Uint32Array([ioEvent.mousemove,0,mouseX,mouseY]));
+    fpsTime = (new Date()).getTime();
+    const mousePos = calculateMousePos(ev);
+    this.receiveChannel.send(new Float32Array([ioEvent.mousemove,0,mousePos.x,mousePos.y]));
   }.bind(this),false);
   videoContainer.addEventListener('mousedown',function (ev) {
-    let mouseX = ev.clientX-remoteVideo.offsetLeft;
-    let mouseY = ev.clientY-remoteVideo.offsetTop - hoffset;
-    mouseX = mouseX/1280*1920;
-    mouseY = mouseY/720*1080;
-    console.log(`x坐标=${ev.clientX},y坐标=${ev.clientY}. x边距=${rect.x}, y边距=${rect.y}. videoContainer左边距=${videoContainer.offsetLeft},videoContainer顶边距=${videoContainer.offsetTop}`);
-    this.receiveChannel.send(new Uint32Array([ioEvent.mousedown,ev.button,mouseX,mouseY]));
-    console.log(`mousedown, x = ${  mouseX  }y = ${  mouseY}`);
+    const mousePos = calculateMousePos(ev);
+    this.receiveChannel.send(new Float32Array([ioEvent.mousedown,ev.button,mousePos.x,mousePos.y]));
+    console.log(`mousedown, x = ${  mousePos.x  }y = ${  mousePos.y}`);
     console.log(`window左边距=${window.offsetLeft},window顶边距=${window.offsetTop}.remoteVideo左边距=${remoteVideo.offsetLeft},remoteVideo顶边距=${remoteVideo.offsetTop}`);
   }.bind(this),false);
   videoContainer.addEventListener('mouseup',function (ev) {
-    let mouseX = ev.clientX-remoteVideo.offsetLeft;
-    let mouseY = ev.clientY-remoteVideo.offsetTop - hoffset;
-    mouseX = mouseX/1280*1920;
-    mouseY = mouseY/720*1080;
-    this.receiveChannel.send(new Uint32Array([ioEvent.mouseup,ev.button,mouseX,mouseY]));
-    console.log(`mouseup, x = ${  mouseX  }y = ${  mouseY}`);
+    const mousePos = calculateMousePos(ev);
+    this.receiveChannel.send(new Float32Array([ioEvent.mouseup,ev.button,mousePos.x,mousePos.y]));
+    console.log(`mouseup, x = ${  mousePos.x  }y = ${  mousePos.y}`);
   }.bind(this),false);
   window.addEventListener('keydown',function (ev) {
-    this.receiveChannel.send(new Uint32Array([ioEvent.keydown,ev.keyCode]));
+    this.receiveChannel.send(new Float32Array([ioEvent.keydown,ev.keyCode]));
   }.bind(this),false);
   window.addEventListener('keyup',function (ev) {
-    this.receiveChannel.send(new Uint32Array([ioEvent.keyup,ev.keyCode]));
+    this.receiveChannel.send(new Float32Array([ioEvent.keyup,ev.keyCode]));
   }.bind(this),false);
 }
 
