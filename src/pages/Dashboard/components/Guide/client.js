@@ -61,7 +61,7 @@ WebsocketClient.prototype.HandleMessage = function(message) {
 
 
 WebsocketClient.prototype.Dispatch = function(message) {
-  console.log('[info][client][action:Dispatch][contain:' + message.msgType + ']');
+  console.log(`[info][client][action:Dispatch][contain:${  message.msgType  }]`);
   switch (message.msgType) {
     case 'logged':
       this.HandleLogged(message);

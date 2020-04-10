@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Message } from '@alifd/next';
+import { Button, Message, Select } from '@alifd/next';
 import styles from './index.module.scss';
 import websocketclient from './client';
 
@@ -7,6 +7,18 @@ import websocketclient from './client';
 const pomelo = window.pomelo;
 pomelo.on('jobMsg',OnMessage);
 pomelo.on('showInClient',OnMessage);
+
+let seletExperimentId = 'tanks';
+const dataSource = [
+  {value: 'tanks', label: 'tanks'},
+  {value: 'ball', label: 'ball'},
+  {value: 'BanHeZhan', label: 'BanHeZhan'},
+];
+
+function handleChange(value) {
+  seletExperimentId = value.value;
+  console.log(value);
+}
 
 const returnMsg = {
   authFail: '验证失败',
@@ -90,6 +102,7 @@ function OnMessage(data){
       break;
   }
 }
+
 function entry(host, port, callback) {
   // init socketClient
   // TODO for development
@@ -112,8 +125,9 @@ function entry(host, port, callback) {
       pomelo.on('close',function(){
         location.reload();
       });
-      const rd = Math.floor(Math.random()*10)%2;
-      const info = data[rd];
+      const rd = Math.floor(Math.random()*10)%data.length;
+      const info = seletExperimentId;
+      // const info = data[rd];
       console.log(`获取的随机数=${rd}, 返回的列表长度=${data.lenght}, experimentId=${info.experimentId}, 绝对路径=${info.AbsolutePath}`);
       pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: info},function(data1) {
         console.log(`jobDispatch.jobDispatchHandler.doJob is callback. return value is ${  data1}`);
@@ -152,16 +166,22 @@ function onStartExperimentClick(){
   });
 }
 
-const Guide = () => (
-  <div className={styles.container}>
-    <h2 className={styles.title}>Welcome to icejs!</h2>
 
-    <p className={styles.description}>This is a awesome project, enjoy it!</p>
+
+const Guide = () => (
+
+  <div className={styles.container}>
+    <h2 className={styles.title}>云平台3.0</h2>
+
+    <p className={styles.description}>这是一个测试版本, 不要多次点击"启动实验"按钮</p>
     <div id="videoContainer">
       <video id="remoteVideo" playsinline autoPlay muted><track  /></video>
     </div>
+    <div>
+      <Select useDetailValue defaultValue={{value: 'tanks', label: 'tanks'}} onChange={handleChange} dataSource={dataSource} style={{width: 150}}/>
+    </div>
     <div className={styles.action}>
-      <Button type="primary" size="large" onClick={onStartExperimentClick}>
+      <Button id="startbt" type="primary" size="large" onClick={onStartExperimentClick}>
         启动实验
       </Button>
     </div>
