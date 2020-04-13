@@ -108,7 +108,7 @@ function entry(host, port, callback) {
   // TODO for development
   if(host === '127.0.0.1') {
     // eslint-disable-next-line no-param-reassign
-    host = '10.0.100.11';
+    host = '10.0.19.51';
   }
   const timeStamp = new Date().getTime();
   pomelo.init({'host': host, 'port': port, log: true}, function() {
@@ -138,7 +138,7 @@ function entry(host, port, callback) {
 }
 
 function queryEntry(uid, callback) {
-  pomelo.init({host: '10.0.100.11', port: '3040', log: true}, function() {
+  pomelo.init({host: '10.0.19.51', port: '3040', log: true}, function() {
     pomelo.request('gate.gateHandler.queryEntry', { 'uid': uid}, function(data) {
       pomelo.disconnect();
 
@@ -159,8 +159,17 @@ function authEntry(uid, callback) {
   });
 }
 
+let isbtClieted = false;
+
 function onStartExperimentClick(){
+  if(isbtClieted){
+    Message.notice({
+      title: '您已经点击过启动实验按钮,请耐心等待或刷新页面!',
+      duration: 2000
+    });
+  }
   console.log('点击了启动实验按钮');
+  isbtClieted = true;
   authEntry('userName',(data)=>{
     console.log(data);
   });
