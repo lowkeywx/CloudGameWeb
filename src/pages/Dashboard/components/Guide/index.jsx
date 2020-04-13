@@ -98,7 +98,10 @@ const Guide = () => {
   const[selectDefaultValue,SetDefaultSelect] = useState({value: 'none', label: '无'});
   const[dataSource,setDataSource] = useState([]);
   const[loadingVisisble,SetLoadingVisible] = useState(false);
+  const[selectDisable,SetSelectDisable] = useState(true);
+  const[selectDivVisible,SetSelectDivVisible] = useState('hidden');
   function isStartExp(){
+    SetRandomExp(false);
     if(startBtName === '获取实验') return false;
     if(startBtName === '启动实验') return true;
   }
@@ -142,6 +145,8 @@ const Guide = () => {
           setDataSource(expArray);
           SetStartBtName('启动实验');
           SetBtDisable(false);
+          SetSelectDisable(false);
+          SetSelectDivVisible('visible');
         }
       });
     });
@@ -173,8 +178,9 @@ const Guide = () => {
     SetBtDisable(true);
     SetLoadingVisible(true);
     if(isStartExp()){
-      setInterval(() => { SetLoadingVisible(false); }, 1000 * 6);
       console.log('点击了启动实验按钮');
+      setInterval(() => { SetLoadingVisible(false); }, 1000 * 6);
+      SetSelectDivVisible('hidden');
       pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: seletExperimentId},function(data1) {
         console.log(`jobDispatch.jobDispatchHandler.doJob is callback. return value is ${  data1}`);
       });
@@ -189,13 +195,12 @@ const Guide = () => {
   return(
     <div className={styles.container}>
       <h2 className={styles.title}>云平台3.0</h2>
-
-      <p className={styles.description}>这是一个测试版本, 不要多次点击 --启动实验-- 按钮</p>
+      <p className={styles.description}>这是一个测试版本,测试过程中有任何问题请反馈一下,谢谢</p>
       <div id="videoContainer">
         <video id="remoteVideo" playsinline autoPlay muted><track  /></video>
       </div>
-      <div>
-        <Select useDetailValue defaultValue={selectDefaultValue} onChange={handleChange} dataSource={dataSource} style={{width: 150}}/>
+      <div style={{visibility: selectDivVisible}}>
+        <Select useDetailValue defaultValue={selectDefaultValue} onChange={handleChange} dataSource={dataSource} size="large" disabled={selectDisable}/>
       </div>
       <div className={styles.action}>
         <Loading tip="...启动中..." size="large" visible={loadingVisisble} fullScreen>
