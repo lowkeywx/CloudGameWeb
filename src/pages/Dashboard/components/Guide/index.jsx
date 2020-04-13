@@ -1,24 +1,11 @@
-import * as React from 'react';
-import { Button, Message, Select } from '@alifd/next';
+import React, { useState } from 'react';
+import { Button, Message, Select, Loading } from '@alifd/next';
 import styles from './index.module.scss';
 import websocketclient from './client';
-
 
 const pomelo = window.pomelo;
 pomelo.on('jobMsg',OnMessage);
 pomelo.on('showInClient',OnMessage);
-
-let seletExperimentId = 'tanks';
-const dataSource = [
-  {value: 'tanks', label: 'tanks'},
-  {value: 'ball', label: 'ball'},
-  {value: 'BanHeZhan', label: 'BanHeZhan'},
-];
-
-function handleChange(value) {
-  seletExperimentId = value.value;
-  console.log(value);
-}
 
 const returnMsg = {
   authFail: '验证失败',
@@ -103,98 +90,122 @@ function OnMessage(data){
   }
 }
 
-function entry(host, port, callback) {
-  // init socketClient
-  // TODO for development
-  if(host === '127.0.0.1') {
-    // eslint-disable-next-line no-param-reassign
-    host = '10.0.19.51';
+const Guide = () => {
+  const[randomExp,SetRandomExp] = useState(false);
+  const[startBtdisabled,SetBtDisable] = useState(false);
+  const[startBtName,SetStartBtName] = useState('获取实验');
+  const[seletExperimentId,SetExperimentId] = useState('none');
+  const[selectDefaultValue,SetDefaultSelect] = useState({value: 'none', label: '无'});
+  const[dataSource,setDataSource] = useState([]);
+  const[loadingVisisble,SetLoadingVisible] = useState(false);
+  function isStartExp(){
+    if(startBtName === '获取实验') return false;
+    if(startBtName === '启动实验') return true;
   }
-  const timeStamp = new Date().getTime();
-  pomelo.init({'host': host, 'port': port, log: true}, function() {
-    pomelo.request('connector.entryHandler.entry', {userName: timeStamp.toString(),password: '123456',schoolId: 0}, function(data) {
-      if(!data){
-        alert('获取实验列表为空!');
-      }
-      if (callback) {
-        callback(data.code);
-      }
-      console.log('获取实验列表成功，将启动实验。');
-      console.log(`data keys is : ${Object.keys(data)}`);
-      console.log(`data values is  : ${Object.values(data)}`);
-      pomelo.on('close',function(){
-        location.reload();
+  
+  function startRandomExp(data){
+    const rd = Math.floor(Math.random()*10)%data.length;
+    SetExperimentId(data[rd]);
+    console.log(`获取的随机数=${rd}, 返回的列表长度=${data.lenght}, experimentId=${seletExperimentId}`);
+    onStartExperimentClick();
+  }
+
+  function handleChange(value) {
+    SetExperimentId(value.value);
+    console.log(value);
+  }
+
+  function entry(host, port, callback) {
+    if(host === '127.0.0.1') {
+      // eslint-disable-next-line no-param-reassign
+      host = '10.0.19.51';
+    }
+    const timeStamp = new Date().getTime();
+    pomelo.init({'host': host, 'port': port, log: true}, function() {
+      pomelo.request('connector.entryHandler.entry', {userName: timeStamp.toString(),password: '123456',schoolId: 0}, function(data) {
+        if(!data){
+          // eslint-disable-next-line no-alert
+          alert('获取实验列表为空!');
+        }
+        if (callback) { callback(data.code); }
+        console.log('获取实验列表成功，将启动实验。');
+        pomelo.on('close',function(){ location.reload(); });
+        if(randomExp){
+          startRandomExp(data);
+        }else{
+          let expArray = [];
+          for(let i = 0; i < data.length; i++){
+            expArray.push(data[i]);
+          }
+          SetDefaultSelect({value: data[0], label: data[0]});
+          SetLoadingVisible(false);
+          setDataSource(expArray);
+          SetStartBtName('启动实验');
+          SetBtDisable(false);
+        }
       });
-      const rd = Math.floor(Math.random()*10)%data.length;
-      const info = seletExperimentId;
-      // const info = data[rd];
-      console.log(`获取的随机数=${rd}, 返回的列表长度=${data.lenght}, experimentId=${info.experimentId}, 绝对路径=${info.AbsolutePath}`);
-      pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: info},function(data1) {
+    });
+  }
+
+  function queryEntry(uid, callback) {
+    pomelo.init({host: '10.0.19.51', port: '3040', log: true}, function() {
+      pomelo.request('gate.gateHandler.queryEntry', { 'uid': uid}, function(data) {
+        pomelo.disconnect();
+  
+        if(data.code === 2001) {
+          // eslint-disable-next-line no-alert
+          alert('Servers error!');
+          return;
+        }
+        callback(data.clientHost, data.clientPort);
+      });
+    });
+  }
+
+  function authEntry(uid, callback) {
+    queryEntry(uid, function(host, port) {
+      console.log(`host : ${  host  }, port : ${  port}`);
+      entry(host, port, callback);
+    });
+  }
+
+  function onStartExperimentClick(){
+    SetBtDisable(true);
+    SetLoadingVisible(true);
+    if(isStartExp()){
+      setInterval(() => { SetLoadingVisible(false); }, 1000 * 6);
+      console.log('点击了启动实验按钮');
+      pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: seletExperimentId},function(data1) {
         console.log(`jobDispatch.jobDispatchHandler.doJob is callback. return value is ${  data1}`);
       });
-
-    });
-  });
-}
-
-function queryEntry(uid, callback) {
-  pomelo.init({host: '10.0.19.51', port: '3040', log: true}, function() {
-    pomelo.request('gate.gateHandler.queryEntry', { 'uid': uid}, function(data) {
-      pomelo.disconnect();
-
-      if(data.code === 2001) {
-        // eslint-disable-next-line no-alert
-        alert('Servers error!');
-        return;
-      }
-      callback(data.clientHost, data.clientPort);
-    });
-  });
-}
-
-function authEntry(uid, callback) {
-  queryEntry(uid, function(host, port) {
-    console.log(`host : ${  host  }, port : ${  port}`);
-    entry(host, port, callback);
-  });
-}
-
-let isbtClieted = false;
-
-function onStartExperimentClick(){
-  if(isbtClieted){
-    Message.notice({
-      title: '您已经点击过启动实验按钮,请耐心等待或刷新页面!',
-      duration: 2000
-    });
+    }else{
+      console.log('点击了获取实验按钮');
+      authEntry('userName',(data)=>{
+        console.log(data);
+      });
+    }
   }
-  console.log('点击了启动实验按钮');
-  isbtClieted = true;
-  authEntry('userName',(data)=>{
-    console.log(data);
-  });
-}
 
+  return(
+    <div className={styles.container}>
+      <h2 className={styles.title}>云平台3.0</h2>
 
-
-const Guide = () => (
-
-  <div className={styles.container}>
-    <h2 className={styles.title}>云平台3.0</h2>
-
-    <p className={styles.description}>这是一个测试版本, 不要多次点击"启动实验"按钮</p>
-    <div id="videoContainer">
-      <video id="remoteVideo" playsinline autoPlay muted><track  /></video>
+      <p className={styles.description}>这是一个测试版本, 不要多次点击 --启动实验-- 按钮</p>
+      <div id="videoContainer">
+        <video id="remoteVideo" playsinline autoPlay muted><track  /></video>
+      </div>
+      <div>
+        <Select useDetailValue defaultValue={selectDefaultValue} onChange={handleChange} dataSource={dataSource} style={{width: 150}}/>
+      </div>
+      <div className={styles.action}>
+        <Loading tip="...启动中..." size="large" visible={loadingVisisble} fullScreen>
+          <Button id="startbt" type="primary" size="large" disabled={startBtdisabled} onClick={onStartExperimentClick}>
+            {startBtName}
+          </Button>
+        </Loading>
+      </div>
     </div>
-    <div>
-      <Select useDetailValue defaultValue={{value: 'tanks', label: 'tanks'}} onChange={handleChange} dataSource={dataSource} style={{width: 150}}/>
-    </div>
-    <div className={styles.action}>
-      <Button id="startbt" type="primary" size="large" onClick={onStartExperimentClick}>
-        启动实验
-      </Button>
-    </div>
-  </div>
-);
+  );
+};
 
 export default Guide;
