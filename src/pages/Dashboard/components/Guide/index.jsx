@@ -179,7 +179,7 @@ const Guide = () => {
     SetLoadingVisible(true);
     if(isStartExp()){
       console.log('点击了启动实验按钮');
-      setInterval(() => { SetLoadingVisible(false); }, 1000 * 6);
+      setTimeout(() => { SetLoadingVisible(false); }, 1000 * 6);
       SetSelectDivVisible('hidden');
       pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: seletExperimentId},function(data1) {
         console.log(`jobDispatch.jobDispatchHandler.doJob is callback. return value is ${  data1}`);
@@ -202,9 +202,9 @@ const Guide = () => {
       <div style={{visibility: selectDivVisible}}>
         <Select useDetailValue defaultValue={selectDefaultValue} onChange={handleChange} dataSource={dataSource} size="large" disabled={selectDisable}/>
       </div>
-      <div className={styles.action}>
+      <div className={styles.action} >
         <Loading tip="...启动中..." size="large" visible={loadingVisisble} fullScreen>
-          <Button id="startbt" type="primary" size="large" disabled={startBtdisabled} onClick={onStartExperimentClick}>
+          <Button type="primary" size="large" disabled={startBtdisabled} onClick={onStartExperimentClick}>
             {startBtName}
           </Button>
         </Loading>
