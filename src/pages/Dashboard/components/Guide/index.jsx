@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Message, Select, Loading } from '@alifd/next';
 import styles from './index.module.scss';
-import websocketclient from './client';
+import websocketclient from './client'
 
 const pomelo = window.pomelo;
 pomelo.on('jobMsg',OnMessage);
@@ -23,67 +23,43 @@ function OnMessage(data){
     case 0:
       data.data = data.data || '';
       // alert(returnMsg[codeMsg[0]]);
-      Message.notice({
-        title: `${returnMsg[codeMsg[0]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({title: `${returnMsg[codeMsg[0]]},${data.data}`, duration: 2000});
       break;
     case 1:
       // alert(returnMsg[codeMsg[1]]);
       data.data = data.data || '';
-      Message.notice({
-        title: `${returnMsg[codeMsg[1]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({ title: `${returnMsg[codeMsg[1]]},${data.data}`, duration: 2000 });
       break;
     case 2:
       // alert(returnMsg[codeMsg[2]]);
       data.data = data.data || '';
-      Message.notice({
-        title: `${returnMsg[codeMsg[2]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({ title: `${returnMsg[codeMsg[2]]},${data.data}`, duration: 2000 });
       pomelo.rtcClient = websocketclient(data.msg);
       break;
     case 3:
       // alert(returnMsg[codeMsg[3]]);
       data.data = data.data || '';
-      Message.notice({
-        title: `${returnMsg[codeMsg[3]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({ title: `${returnMsg[codeMsg[3]]},${data.data}`, duration: 2000 });
       break;
     case 4:
       // alert(returnMsg[codeMsg[4]]);
       data.data = data.data || '';
-      Message.notice({
-        title: `${returnMsg[codeMsg[4]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({ title: `${returnMsg[codeMsg[4]]},${data.data}`, duration: 2000 });
       break;
     case 5:
       // alert(returnMsg[codeMsg[5]]);
       data.data = data.data || '';
-      Message.notice({
-        title: `${returnMsg[codeMsg[5]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({ title: `${returnMsg[codeMsg[5]]},${data.data}`, duration: 2000 });
       break;
     case 6:
       // alert(returnMsg[codeMsg[6]]);
       data.data = data.data || '';
-      Message.notice({
-        title: `${returnMsg[codeMsg[6]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({ title: `${returnMsg[codeMsg[6]]},${data.data}`, duration: 2000 });
       break;
     case 7:
       // alert(returnMsg[codeMsg[7]]);
       data.data = data.data || '';
-      Message.notice({
-        title: `${returnMsg[codeMsg[7]]},${data.data}`,
-        duration: 2000
-      });
+      Message.notice({ title: `${returnMsg[codeMsg[7]]},${data.data}`, duration: 2000 });
       break;
     default:
       break;
@@ -94,8 +70,7 @@ const Guide = () => {
   const[randomExp,SetRandomExp] = useState(false);
   const[startBtdisabled,SetBtDisable] = useState(false);
   const[startBtName,SetStartBtName] = useState('获取实验');
-  const[seletExperimentId,SetExperimentId] = useState('none');
-  const[selectDefaultValue,SetDefaultSelect] = useState({value: 'none', label: '无'});
+  const[seletExperimentId,SetExperimentId] = useState('');
   const[dataSource,setDataSource] = useState([]);
   const[loadingVisisble,SetLoadingVisible] = useState(false);
   const[selectDisable,SetSelectDisable] = useState(true);
@@ -131,7 +106,7 @@ const Guide = () => {
           alert('获取实验列表为空!');
         }
         if (callback) { callback(data.code); }
-        console.log('获取实验列表成功，将启动实验。');
+        console.log('获取实验列表成功。');
         pomelo.on('close',function(){ location.reload(); });
         if(randomExp){
           startRandomExp(data);
@@ -140,7 +115,6 @@ const Guide = () => {
           for(let i = 0; i < data.length; i++){
             expArray.push(data[i]);
           }
-          SetDefaultSelect({value: data[0], label: data[0]});
           SetLoadingVisible(false);
           setDataSource(expArray);
           SetStartBtName('启动实验');
@@ -179,6 +153,12 @@ const Guide = () => {
     SetLoadingVisible(true);
     if(isStartExp()){
       console.log('点击了启动实验按钮');
+      if(!seletExperimentId) {
+        Message.notice({title: '您还没有选择实验.', duration: 2000});
+        SetBtDisable(false);
+        SetLoadingVisible(false);
+        return;
+      }
       setTimeout(() => { SetLoadingVisible(false); }, 1000 * 6);
       SetSelectDivVisible('hidden');
       pomelo.request('jobDispatch.jobDispatchHandler.doJob',{jobType: 0,experimentId: seletExperimentId},function(data1) {
@@ -192,15 +172,20 @@ const Guide = () => {
     }
   }
 
+  function disableyoujian(){
+    return false;
+  }
+
   return(
     <div className={styles.container}>
       <h2 className={styles.title}>云平台3.0</h2>
-      <p className={styles.description}>这是一个测试版本,测试过程中有任何问题请反馈一下,谢谢</p>
+      <p className={styles.description}>这是一个测试版本, 测试过程中有任何问题请反馈一下,谢谢。</p>
+      <p className={styles.description1}>排队过程中无需刷新页面, 待有可用服务器会自动进入实验</p>
       <div id="videoContainer">
-        <video id="remoteVideo" playsinline autoPlay muted><track  /></video>
+        <video id="remoteVideo" playsinline autoPlay muted ><track  /></video>
       </div>
       <div style={{visibility: selectDivVisible}}>
-        <Select useDetailValue defaultValue={selectDefaultValue} onChange={handleChange} dataSource={dataSource} size="large" disabled={selectDisable}/>
+        <Select useDetailValue onChange={handleChange} dataSource={dataSource} size="large" disabled={selectDisable}/>
       </div>
       <div className={styles.action} >
         <Loading tip="...启动中..." size="large" visible={loadingVisisble} fullScreen>
