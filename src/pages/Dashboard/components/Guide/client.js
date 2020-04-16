@@ -218,7 +218,9 @@ WebsocketClient.prototype.receiveChannelCallback = function(event) {
       return;
     fpsTime = (new Date()).getTime();
     const mousePos = calculateMousePos(ev);
+    // const mousePos = {x: ev.movementX, y: ev.offsetY};
     this.receiveChannel.send(new Float32Array([ioEvent.mousemove,0,mousePos.x,mousePos.y]));
+    console.log(`mousedown, x = ${  mousePos.x  }y = ${  mousePos.y}`);
   }.bind(this),false);
   videoContainer.addEventListener('mousedown',function (ev) {
     const mousePos = calculateMousePos(ev);

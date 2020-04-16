@@ -172,10 +172,6 @@ const Guide = () => {
     }
   }
 
-  function disableyoujian(){
-    return false;
-  }
-
   return(
     <div className={styles.container}>
       <h2 className={styles.title}>云平台3.0</h2>
