@@ -183,6 +183,10 @@ WebsocketClient.prototype.HandleCondidate = function(msg) {
 
 WebsocketClient.prototype.gotRemoteStream = function(e) {
   const remoteVideo = document.getElementById('remoteVideo');
+  const ice = document.getElementById('ice-container');
+  ice.style.display = 'none';
+  const videoContainer = document.getElementById('videoContainer');
+  videoContainer.style.display = 'block';
   if (remoteVideo.srcObject !== e.streams[0]) {
     remoteVideo.srcObject = e.streams[0];
     console.log('[info][client][action:stream][contain:set remote stream.]');

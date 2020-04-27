@@ -6,6 +6,7 @@ import websocketclient from './client'
 const pomelo = window.pomelo;
 pomelo.on('jobMsg',OnMessage);
 pomelo.on('showInClient',OnMessage);
+const serverHost = '10.0.19.51';
 
 const returnMsg = {
   authFail: '验证失败',
@@ -19,49 +20,43 @@ const returnMsg = {
 }
 const codeMsg = ['authFail', 'jobFail', 'jobDispatched','jobInit','invalidArgs_jobType','invalidArgs_expId','maxJob','noIdleServer','end']
 function OnMessage(data){
+  let nofyfyMsg = '未知错误';
   switch(data.code){
     case 0:
-      data.data = data.data || '';
-      // alert(returnMsg[codeMsg[0]]);
-      Message.notice({title: `${returnMsg[codeMsg[0]]},${data.data}`, duration: 2000});
+      nofyfyMsg = data.data || '';
+      Message.notice({title: `${returnMsg[codeMsg[0]]},${nofyfyMsg}`, duration: 2000});
       break;
     case 1:
-      // alert(returnMsg[codeMsg[1]]);
-      data.data = data.data || '';
-      Message.notice({ title: `${returnMsg[codeMsg[1]]},${data.data}`, duration: 2000 });
+      nofyfyMsg = data.data || '';
+      Message.notice({ title: `${returnMsg[codeMsg[1]]},${nofyfyMsg}`, duration: 2000 });
       break;
     case 2:
-      // alert(returnMsg[codeMsg[2]]);
-      data.data = data.data || '';
-      Message.notice({ title: `${returnMsg[codeMsg[2]]},${data.data}`, duration: 2000 });
-      pomelo.rtcClient = websocketclient(data.msg);
+      nofyfyMsg = data.data || '';
+      Message.notice({ title: `${returnMsg[codeMsg[2]]},${nofyfyMsg}`, duration: 2000 });
+      window.rtcClient = websocketclient(data.msg);
       break;
     case 3:
-      // alert(returnMsg[codeMsg[3]]);
-      data.data = data.data || '';
-      Message.notice({ title: `${returnMsg[codeMsg[3]]},${data.data}`, duration: 2000 });
+      nofyfyMsg = data.data || '';
+      Message.notice({ title: `${returnMsg[codeMsg[3]]},${nofyfyMsg}`, duration: 2000 });
       break;
     case 4:
-      // alert(returnMsg[codeMsg[4]]);
-      data.data = data.data || '';
-      Message.notice({ title: `${returnMsg[codeMsg[4]]},${data.data}`, duration: 2000 });
+      nofyfyMsg = data.data || '';
+      Message.notice({ title: `${returnMsg[codeMsg[4]]},${nofyfyMsg}`, duration: 2000 });
       break;
     case 5:
-      // alert(returnMsg[codeMsg[5]]);
-      data.data = data.data || '';
-      Message.notice({ title: `${returnMsg[codeMsg[5]]},${data.data}`, duration: 2000 });
+      nofyfyMsg = data.data || '';
+      Message.notice({ title: `${returnMsg[codeMsg[5]]},${nofyfyMsg}`, duration: 2000 });
       break;
     case 6:
-      // alert(returnMsg[codeMsg[6]]);
-      data.data = data.data || '';
-      Message.notice({ title: `${returnMsg[codeMsg[6]]},${data.data}`, duration: 2000 });
+      nofyfyMsg = data.data || '';
+      Message.notice({ title: `${returnMsg[codeMsg[6]]},${nofyfyMsg}`, duration: 2000 });
       break;
     case 7:
-      // alert(returnMsg[codeMsg[7]]);
-      data.data = data.data || '';
-      Message.notice({ title: `${returnMsg[codeMsg[7]]},${data.data}`, duration: 2000 });
+      nofyfyMsg = data.data || '';
+      Message.notice({ title: `${returnMsg[codeMsg[7]]},${nofyfyMsg}`, duration: 2000 });
       break;
     default:
+      Message.notice({ title: `${nofyfyMsg},${data.data}`, duration: 2000 });
       break;
   }
 }
@@ -96,7 +91,7 @@ const Guide = () => {
   function entry(host, port, callback) {
     if(host === '127.0.0.1') {
       // eslint-disable-next-line no-param-reassign
-      host = '10.0.19.51';
+      host = serverHost;
     }
     const timeStamp = new Date().getTime();
     pomelo.init({'host': host, 'port': port, log: true}, function() {
@@ -111,7 +106,7 @@ const Guide = () => {
         if(randomExp){
           startRandomExp(data);
         }else{
-          let expArray = [];
+          const expArray = [];
           for(let i = 0; i < data.length; i++){
             expArray.push(data[i]);
           }
@@ -127,7 +122,7 @@ const Guide = () => {
   }
 
   function queryEntry(uid, callback) {
-    pomelo.init({host: '10.0.19.51', port: '3040', log: true}, function() {
+    pomelo.init({host: serverHost, port: '3040', log: true}, function() {
       pomelo.request('gate.gateHandler.queryEntry', { 'uid': uid}, function(data) {
         pomelo.disconnect();
   
@@ -177,9 +172,6 @@ const Guide = () => {
       <h2 className={styles.title}>云平台3.0</h2>
       <p className={styles.description}>这是一个测试版本, 测试过程中有任何问题请反馈一下,谢谢。</p>
       <p className={styles.description1}>排队过程中无需刷新页面, 待有可用服务器会自动进入实验</p>
-      <div id="videoContainer">
-        <video id="remoteVideo" playsinline autoPlay muted ><track  /></video>
-      </div>
       <div style={{visibility: selectDivVisible}}>
         <Select useDetailValue onChange={handleChange} dataSource={dataSource} size="large" disabled={selectDisable}/>
       </div>
