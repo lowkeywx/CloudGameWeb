@@ -17,7 +17,11 @@ function WebsocketClient(jId){
   this.pc = {};
   this.pc1 = {};
   this.jobId = jId;
-  this.ws = new WebSocket('ws://10.0.19.15:5000');
+
+  // 信令服务器地址
+  this.ws = new WebSocket('ws://114.116.131.15:5000'); 
+  // this.ws = new WebSocket('ws://10.0.100.11:5000');
+  // this.ws = new WebSocket('ws://10.0.19.15:5000');
 
   this.ws.onopen = function(evt) {  // 绑定连接事件
     // this.start();
@@ -25,7 +29,8 @@ function WebsocketClient(jId){
     // ws.send("发送的数据");
     let login = {
       msgType : 'login',
-      jobId : jId
+      jobId : jId,
+      clientType : 'WEB'
     };
     login = JSON.stringify(login);
     this.ws.send(login);
@@ -67,7 +72,7 @@ WebsocketClient.prototype.Dispatch = function(message) {
       this.HandleLogged(message);
       break;
     case 'sdp':
-      this.HandleSDP(message);
+      this.HandleSDP(message); 
       break;
     case 'candidate':
       this.HandleCondidate(message);
@@ -97,6 +102,7 @@ WebsocketClient.prototype.onIceCandidate = function(pc, event) {
 WebsocketClient.prototype.HandleLogged = function(msg) {
 
   let iceServers = [];
+
   if (moz) {
     iceServers.push({
       url: 'stun:23.21.150.121'
@@ -126,23 +132,26 @@ WebsocketClient.prototype.HandleLogged = function(msg) {
 
   if (!moz && chromeVersion >= 28) {
     iceServers.push({
-      url: 'turn:turn.bistri.com:80',
-      credential: 'homeo',
-      username: 'homeo'
+      url: 'turn:1.119.155.126:3478',
+      credential: '123456',
+      username: 'turnserver',
+      credentialType: 'password'
     });
 
     iceServers.push({
       url: 'turn:turn.anyfirewall.com:443?transport=tcp',
       credential: 'webrtc',
-      username: 'webrtc'
+      username: 'webrtc',
     });
   }
 
-  iceServers = {
-    iceServers: iceServers
+  const iceConfig = {
+    // eslint-disable-next-line object-shorthand
+    iceServers: iceServers,
+    // iceTransportPolicy: 'relay'
   };
 
-  this.pc = new RTCPeerConnection(iceServers);
+  this.pc = new RTCPeerConnection(iceConfig);
   this.pc.addEventListener('icecandidate', function(e){
     this.onIceCandidate(this.pc, e);
   }.bind(this));
@@ -211,9 +220,9 @@ WebsocketClient.prototype.receiveChannelCallback = function(event) {
     let mouseY = mouseEvent.clientY-rect.top;
     mouseX /=remoteVideo.clientWidth;
     mouseY /=remoteVideo.clientHeight;
-    console.info(`remoteVideo.offsetTop=${remoteVideo.offsetTop}, remoteVideo.clientTop=${remoteVideo.clientTop}, remoteVideo.scrollTop=${remoteVideo.scrollTop}`);
-    console.info(`remoteVideo.rect.left=${rect.left}, remoteVideo.rect.top=${rect.top}, remoteVideo.rect.right=${rect.right}, remoteVideo.rect.bottom =${rect.bottom }`);
-    console.info(`remoteVideo.offsetLeft=${remoteVideo.offsetLeft}, remoteVideo.offsetWidth=${remoteVideo.offsetWidth}`);
+    // console.info(`remoteVideo.offsetTop=${remoteVideo.offsetTop}, remoteVideo.clientTop=${remoteVideo.clientTop}, remoteVideo.scrollTop=${remoteVideo.scrollTop}`);
+    // console.info(`remoteVideo.rect.left=${rect.left}, remoteVideo.rect.top=${rect.top}, remoteVideo.rect.right=${rect.right}, remoteVideo.rect.bottom =${rect.bottom }`);
+    // console.info(`remoteVideo.offsetLeft=${remoteVideo.offsetLeft}, remoteVideo.offsetWidth=${remoteVideo.offsetWidth}`);
     // console.info(`remoteVideo.clientHeight=${remoteVideo.clientHeight}, remoteVideo.offsetHeight=${remoteVideo.offsetHeight}, remoteVideo.scrollHeight=${remoteVideo.scrollHeight}`);
     return{x: mouseX,y: mouseY}
   }
@@ -224,7 +233,7 @@ WebsocketClient.prototype.receiveChannelCallback = function(event) {
     const mousePos = calculateMousePos(ev);
     // const mousePos = {x: ev.movementX, y: ev.offsetY};
     this.receiveChannel.send(new Float32Array([ioEvent.mousemove,0,mousePos.x,mousePos.y]));
-    console.log(`mousedown, x = ${  mousePos.x  }y = ${  mousePos.y}`);
+    // console.log(`mousedown, x = ${  mousePos.x  }y = ${  mousePos.y}`);
   }.bind(this),false);
   videoContainer.addEventListener('mousedown',function (ev) {
     const mousePos = calculateMousePos(ev);

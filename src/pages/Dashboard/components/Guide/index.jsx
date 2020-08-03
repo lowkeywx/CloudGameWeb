@@ -6,7 +6,11 @@ import websocketclient from './client'
 const pomelo = window.pomelo;
 pomelo.on('jobMsg',OnMessage);
 pomelo.on('showInClient',OnMessage);
-const serverHost = '10.0.19.51';
+
+// 调度服务器地址
+const serverHost = '114.116.131.15';
+// const serverHost = '10.0.19.6';
+// const serverHost = '10.0.100.11';
 
 const returnMsg = {
   authFail: '验证失败',
