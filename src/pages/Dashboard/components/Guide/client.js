@@ -1,3 +1,5 @@
+const { Form } = require("@alifd/next");
+
 let localStream;
 
 const ioEvent = {
@@ -86,9 +88,6 @@ WebsocketClient.prototype.SendMessage = function(message){
   this.ws.send(message);
 }
 
-window.moz = !!navigator.mozGetUserMedia;
-var chromeVersion = !!navigator.mozGetUserMedia ? 0 : parseInt(navigator.userAgent.match( /Chrom(e|ium)\/([0-9]+)\./ )[2]);
-
 WebsocketClient.prototype.onIceCandidate = function(pc, event) {
   // 发送给对方event.candidate
   const msg = {
@@ -101,54 +100,18 @@ WebsocketClient.prototype.onIceCandidate = function(pc, event) {
 
 WebsocketClient.prototype.HandleLogged = function(msg) {
 
-  let iceServers = [];
-
-  if (moz) {
-    iceServers.push({
-      url: 'stun:23.21.150.121'
-    });
-
-    iceServers.push({
-      url: 'stun:stun.services.mozilla.com'
-    });
-  }
-
-  if (!moz) {
-    iceServers.push({
-      url: 'stun:stun.l.google.com:19302'
-    });
-
-    iceServers.push({
-      url: 'stun:stun.anyfirewall.com:3478'
-    });
-  }
-
-  if (!moz && chromeVersion < 28) {
-    iceServers.push({
-      url: 'turn:homeo@turn.bistri.com:80',
-      credential: 'homeo'
-    });
-  }
-
-  if (!moz && chromeVersion >= 28) {
-    iceServers.push({
-      url: 'turn:1.119.155.126:3478',
-      credential: '123456',
-      username: 'turnserver',
-      credentialType: 'password'
-    });
-
-    iceServers.push({
-      url: 'turn:turn.anyfirewall.com:443?transport=tcp',
-      credential: 'webrtc',
-      username: 'webrtc',
-    });
-  }
-
   const iceConfig = {
-    // eslint-disable-next-line object-shorthand
-    iceServers: iceServers,
-    // iceTransportPolicy: 'relay'
+    iceServers: [
+      {
+        urls: 'stun:stun.l.google.com:19302'
+      },
+      {
+        urls: 'turn:1.119.155.126:3478',
+        credential: '123456',
+        username: 'turnserver',
+        credentialType: 'password'
+      }
+    ]
   };
 
   this.pc = new RTCPeerConnection(iceConfig);
@@ -190,7 +153,53 @@ WebsocketClient.prototype.HandleCondidate = function(msg) {
   this.pc.addIceCandidate(new RTCIceCandidate(candidate));
 }
 
+function textToArrayBuffer(s) {
+  const i = s.length;
+  let n = 0;
+  const ba = [];
+  for (let j = 0; j < i;) {
+    const c = s.codePointAt(j);
+    if (c < 128) {
+      ba[n++] = c;
+      j++;
+    }
+    else if ((c > 127) && (c < 2048)) {
+      ba[n++] = (c >> 6) | 192;
+      ba[n++] = (c & 63) | 128;
+      j++;
+    }
+    else if ((c > 2047) && (c < 65536)) {
+      ba[n++] = (c >> 12) | 224;
+      ba[n++] = ((c >> 6) & 63) | 128;
+      ba[n++] = (c & 63) | 128;
+      j++;
+    }
+    else {
+      ba[n++] = (c >> 18) | 240;
+      ba[n++] = ((c >> 12) & 63) | 128;
+      ba[n++] = ((c >> 6) & 63) | 128;
+      ba[n++] = (c & 63) | 128;
+      j+=2;
+    }
+  }
+  return new Uint8Array(ba).buffer;
+}
+
 WebsocketClient.prototype.gotRemoteStream = function(e) {
+  const imeButton = document.getElementById('IME');
+  imeButton.onclick = ()=>{
+    const strArr = textToArrayBuffer('想输入啥就输入啥');
+    const dataBuff = new ArrayBuffer(256);
+    const typeF32 = new Float32Array(dataBuff,0,1);
+    typeF32.fill(23);
+    const strLenF32 = new Float32Array(dataBuff,4,1);
+    strLenF32.fill(strArr.byteLength);
+    const dataU8 = new Uint8Array(dataBuff,8);
+    dataU8.set(new Uint8Array(strArr));
+
+    this.receiveChannel.send(new Float32Array(dataBuff));
+  }
+
   const remoteVideo = document.getElementById('remoteVideo');
   const ice = document.getElementById('ice-container');
   ice.style.display = 'none';
@@ -226,6 +235,8 @@ WebsocketClient.prototype.receiveChannelCallback = function(event) {
     // console.info(`remoteVideo.clientHeight=${remoteVideo.clientHeight}, remoteVideo.offsetHeight=${remoteVideo.offsetHeight}, remoteVideo.scrollHeight=${remoteVideo.scrollHeight}`);
     return{x: mouseX,y: mouseY}
   }
+
+
   videoContainer.addEventListener('mousemove',function (ev) {
     if (((new Date()).getTime() - fpsTime) < 30)
       return;
@@ -252,6 +263,8 @@ WebsocketClient.prototype.receiveChannelCallback = function(event) {
   window.addEventListener('keyup',function (ev) {
     this.receiveChannel.send(new Float32Array([ioEvent.keyup,ev.keyCode]));
   }.bind(this),false);
+
+
 }
 
 WebsocketClient.prototype.onReceiveMessageCallback = function(event) {
